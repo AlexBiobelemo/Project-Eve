@@ -18,7 +18,7 @@ Recent improvements have enhanced model performance, particularly in clustering 
 ## Setup Instructions
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/AlexBiobelemo/Project-Eve
    cd streamlit-data-visualization
    ```
 
