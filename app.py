@@ -142,7 +142,7 @@ def compute_eda_summary(df: pd.DataFrame, sample_size: int = 50000) -> Dict[str,
         'describe': sampled_df.describe(include='all').to_dict(),
         'dtypes': sampled_df.dtypes.astype(str).to_dict(),
         'missing': sampled_df.isnull().sum().to_dict(),
-        'insights': insights
+        'insights': insightsa
     }
 
 
@@ -162,7 +162,6 @@ def apply_duckdb_filters(df: pd.DataFrame, filter_state: Dict[str, Any], categor
             vals = ", ".join(f"'{str(v).replace("'", "''")}'" for v in filter_state[f"filter_{col}"])
             conditions.append(f'"{col}" IN ({vals})')
 
-    # ... (the rest of the function remains the same) ...
     for col in numeric_cols:
         if f"filter_{col}" in filter_state:
             min_val, max_val = filter_state[f"filter_{col}"]
@@ -898,5 +897,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-
     main()
