@@ -157,7 +157,6 @@ def apply_duckdb_filters(df: pd.DataFrame, filter_state: Dict[str, Any], categor
 
     for col in categorical_cols:
         if f"filter_{col}" in filter_state and filter_state[f"filter_{col}"]:
-            # --- FIX IS HERE ---
             # Escape single quotes in each value by replacing ' with ''
             vals = ", ".join(f"'{str(v).replace("'", "''")}'" for v in filter_state[f"filter_{col}"])
             conditions.append(f'"{col}" IN ({vals})')
