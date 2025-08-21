@@ -476,7 +476,7 @@ def main() -> None:
     st.header("Data Cleaning")
     with st.expander("Clean Your Data"):
         edited_df = st.data_editor(
-            df,
+            df.reset_index(drop=True),
             num_rows="dynamic",
             column_config={col: {"editable": True} for col in df.columns},
             use_container_width=True
@@ -563,23 +563,40 @@ def main() -> None:
                 st.error("Please select input features and target.")
             else:
                 with st.spinner("Training Random Forest..."):
-                    rf_result = perform_random_forest(df, rf_x_cols, rf_y_col, rf_type, preprocess=preprocess_rf_flag,
-                                                      tune=tune_rf_flag, remove_outliers=remove_outliers_rf)
-                if "error" in rf_result:
-                    st.error(rf_result["error"])
-                else:
-                    st.success(
-                        f"Model trained! Metrics: {', '.join([f'{k}: {v:.4f}' for k, v in rf_result['metrics'].items()])}")
-                    st.write(f"CV Mean: {rf_result['cv_mean']:.4f}, CV Std: {rf_result['cv_std']:.4f}, CV Min: {rf_result['cv_min']:.4f}")
-                    if rf_result.get("best_params"):
-                        st.write(f"Best Parameters: {rf_result['best_params']}")
-                    if rf_result.get("feature_importances") is not None:
-                        feat_imp = pd.DataFrame({'Feature': rf_x_cols, 'Importance': rf_result['feature_importances']})
-                        fig_imp = px.bar(feat_imp, x='Feature', y='Importance', title="Feature Importances")
-                        st.plotly_chart(fig_imp)
-                    fig_pred = px.scatter(x=rf_result['y_test'], y=rf_result['y_pred'], title="Actual vs Predicted")
-                    fig_pred.add_scatter(x=rf_result['y_test'], y=rf_result['y_test'], mode='lines', name='Ideal')
-                    st.plotly_chart(fig_pred)
+                    try:
+                        rf_result = perform_random_forest(df, rf_x_cols, rf_y_col, rf_type,
+                                                          preprocess=preprocess_rf_flag,
+                                                          tune=tune_rf_flag, remove_outliers=remove_outliers_rf)
+
+                        if "error" in rf_result:
+                            st.error(rf_result["error"])
+                        else:
+                            st.success(
+                                f"Model trained! Metrics: {', '.join([f'{k}: {v:.4f}' for k, v in rf_result['metrics'].items()])}")
+                            st.write(
+                                f"CV Mean: {rf_result['cv_mean']:.4f}, CV Std: {rf_result['cv_std']:.4f}, CV Min: {rf_result['cv_min']:.4f}")
+                            if rf_result.get("best_params"):
+                                st.write(f"Best Parameters: {rf_result['best_params']}")
+                            if rf_result.get("feature_importances") is not None:
+                                feat_imp = pd.DataFrame(
+                                    {'Feature': rf_x_cols, 'Importance': rf_result['feature_importances']})
+                                fig_imp = px.bar(feat_imp, x='Feature', y='Importance', title="Feature Importances")
+                                st.plotly_chart(fig_imp)
+                            fig_pred = px.scatter(x=rf_result['y_test'], y=rf_result['y_pred'],
+                                                  title="Actual vs Predicted")
+                            fig_pred.add_scatter(x=rf_result['y_test'], y=rf_result['y_test'], mode='lines',
+                                                 name='Ideal')
+                            st.plotly_chart(fig_pred)
+
+                    except ValueError as e:
+                        if "could not convert string to float" in str(e):
+                            st.error(
+                                f"❌ Data Type Error: The model expected numbers but received text. Please check your feature selection. Ensure all input features (X) are numeric or enable 'Preprocess Features' to handle text data automatically. Details: {e}")
+                        else:
+                            st.error(f"An unexpected value error occurred: {e}")
+                    except Exception as e:
+                        st.error(f"An unexpected error occurred during model training: {e}")
+                        logging.error(f"Random Forest Error: {e}")
 
     # --- Sidebar for Controls: Filtering, Chart Config ---
     with st.sidebar:
@@ -605,10 +622,17 @@ def main() -> None:
 
             for col in datetime_cols:
                 min_date, max_date = df[col].min(), df[col].max()
-                default_dates = get_widget_value(f"filter_{col}", (min_date, max_date), tuple)
+                # Ensure default dates are python date objects for the widget
+                default_dates = (min_date.date(), max_date.date())
+
                 date_range = st.date_input(f"Filter by {col}", value=default_dates, min_value=min_date,
                                            max_value=max_date, key=f"date_filter_{col}")
-                st.session_state.filter_state[f"filter_{col}"] = date_range
+
+                # Convert the date objects to full timestamps for comparison
+                if len(date_range) == 2:
+                    start_date, end_date = date_range
+                    st.session_state.filter_state[f"filter_{col}"] = (pd.to_datetime(start_date),
+                                                                      pd.to_datetime(end_date))
 
             # Regex filters
             regex_conditions = {}
@@ -874,4 +898,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+
     main()
