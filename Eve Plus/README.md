@@ -69,7 +69,7 @@ In benchmarks (simulated on similar hardware), it loads 100K+ row datasets in se
 
 2. **Clone the Repo**:
    ```
-   git clone https://github.com/AlexBiobelemo/Project-Eve
+   git clone https://github.com/AlexBiobelemo/Project-Eve/tree/main/Eve%20Plus
    ```
 
 3. **Install Dependencies**:
