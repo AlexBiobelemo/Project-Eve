@@ -38,12 +38,12 @@ Get the Eve Ultra platform running on your local machine in a few simple steps:
 For detailed setup, see the Installation Guide
 
 ## Tech Stack
-- Backend: Python
-- Frontend/UI: Streamlit
-- Data Manipulation: Pandas, NumPy
-- Data Filtering: DuckDB
-- Machine Learning: Scikit-learn
-- Visualization: Plotly, Matplotlib, Seaborn
+- **Backend**: Python
+- **Frontend/UI**: Streamlit
+- **Data Manipulation**: Pandas, NumPy
+- **Data Filtering**: DuckDB
+- **Machine Learning**: Scikit-learn
+- **Visualization**: Plotly, Matplotlib, Seaborn
 
 ### Full Documentation
 For a deep dive into the project's architecture, features, and technical implementation, please visit the full documentation in the docs/ directory.
