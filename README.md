@@ -1,52 +1,105 @@
-# Eve: An AI-Powered Data Analytics Platform
+# Eve Analytics: Zero-Cost, Low-Resource Data Science 🚀
 
-Eve is an open-source, AI-driven data analytics platform designed to turn raw data into actionable insights with maximum efficiency. From automated data cleaning and advanced machine learning to a conversational AI assistant, Eve provides an end-to-end analytics workflow in a single, intuitive interface.
+**Tagline**: A trio of powerful data analytics platforms built solo in 10 days on a 4GB RAM system with no budget and constant power outages.
 
-This project was a solo development challenge, built from scratch in just 10 days on a 4GB RAM laptop (HP Probook 6560b) with a $0 budget, often navigating constant power outages. It was an experiment in pushing the boundaries of creativity and performance engineering with minimal resources.
+## Introduction
 
+Eve Analytics is a suite of three Streamlit-based data analytics platforms—**Eve**, **Eve Plus**, and **Eve Ultra**—designed for lightweight, enterprise-grade data analysis. Built by a solo developer in 10 days on a 4GB RAM HP Probook 6560b, this project pushes the boundaries of creativity under extreme constraints (zero cost, frequent power outages). From basic visualizations to advanced machine learning and conversational AI, Eve Analytics empowers users in resource-constrained environments.
 
-## Key Features (Eve Ultra)
-1. **Conversational AI Assistant**: Ask questions and perform actions using natural language. (e.g., "Clean NaNs in sales" or "Create a scatter plot of profit vs sales").
-2. **Automated Data Cleaning Studio**: Get intelligent suggestions for handling missing data, converting data types, and managing outliers with one-click fixes.
-3. **Anomaly Detection Engine**: Use powerful algorithms like Isolation Forest and Z-Score to automatically identify unusual data points.
-4. **Advanced ML Studio**: Train, compare, and analyze multiple models, including Random Forest and Neural Networks (MLP).
-5. **AutoML Capabilities**: Automatically compare different models to find the best performer for your specific regression or classification task.
-6. **Interactive Visualizations**: Build a wide range of dynamic charts and dashboards with a simple, intuitive UI.
-7. **Performance-Obsessed Architecture**: Heavily optimized with smart sampling, advanced caching, and efficient libraries (DuckDB) to run smoothly on low-resource systems.
+Key highlights:
+- **Zero-Cost Development**: Created with $0 using open-source tools like Streamlit, Pandas, Plotly, and Scikit-learn.
+- **Low-Resource Optimized**: Tested on a 4GB RAM system with hardware-aware sampling, caching, and adaptive processing.
+- **Inspiration**: A testament to maximizing creativity with minimal resources, overcoming constant electricity downtime.
 
+## Features Comparison
 
-## Version Showcase
-The project is available in three distinct versions, showcasing its evolution:
+| Feature                  | Eve (Standard)                          | Eve Plus (Enhanced)                     | Eve Ultra (Enterprise-Grade)            |
+|--------------------------|-----------------------------------------|-----------------------------------------|-----------------------------------------|
+| **Data Loading**         | CSV, Excel, JSON with basic handling    | + Multiple encodings, quality checks    | + Batch uploads, quality scoring, metadata |
+| **Data Processing**      | Basic DuckDB filtering                  | + Smart sampling (>1M rows)             | + Automated feature engineering, advanced quality analysis |
+| **Visualizations**       | Scatter, Line, Bar, Histogram, Box      | + Violin, Pie, Map, Correlation Heatmap | + Anomaly Plot, responsive layouts, accessibility themes |
+| **Machine Learning**     | K-Means clustering with basic metrics   | + Random Forest (regression/classification) | + MLP neural networks, AutoML comparison, advanced clustering |
+| **Anomaly Detection**    | None                                    | IsolationForest, basic outlier removal  | Multiple methods (IsolationForest, Z-Score, Modified Z-Score, IQR) with visualizations |
+| **Natural Language Processing** | None                               | None                                    | Conversational AI for queries (cleaning, filtering, stats, ML) |
+| **Performance Optimizations** | Basic caching                      | Advanced caching, session state         | Hardware-aware (4GB RAM), adaptive sampling, recovery options |
+| **Export/Reporting**     | Basic CSV, HTML dashboard               | + JSON chart export                     | + Themed HTML dashboards, JSON analytics reports |
+| **EDA Capabilities**     | Basic summary and insights              | + Correlation heatmap, chart suggestions | + Comprehensive stats, correlations, outliers |
+| **Accessibility**        | Basic Streamlit layout                  | Responsive design                       | High Contrast, Colorblind Friendly themes, responsive flex containers |
+| **Other**                | Simple UI                               | Performance dashboard, session management | Conversational AI tab, advanced UI controls |
 
-1. **Eve (Standard)**: The foundational, high-performance data visualization tool.
-2. **Eve plus (Advanced)**: Adds a comprehensive suite of advanced metrics for in-depth machine learning model evaluation.
-3. **Eve Ultra (Enterprise)**: The complete AI-powered platform with a conversational assistant, AutoML, anomaly detection, and automated data cleaning.
+## Installation
 
+1. **Prerequisites**:
+   - Python 3.8+ (free download from python.org; tested on low-spec hardware).
+   - No internet required after installation (offline compatible).
+   - Dependencies (install via pip; total ~200MB disk space):
+     ```bash
+     pip install streamlit pandas plotly seaborn scikit-learn openpyxl duckdb numpy scipy
+     ```
+   - On low-RAM systems: Install one package at a time to avoid memory issues.
 
-## Quickstart
-Get the Eve Ultra platform running on your local machine in a few simple steps:
+2. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/yourusername/eve-analytics.git
+   cd eve-analytics
+   ```
+   (If no Git, download ZIP from GitHub.)
 
-- Clone the repository:
-  git clone https://github.com/your-username/eve-analytics-platform.git
+3. **Run the App**:
+   - For Eve Ultra (recommended): `streamlit run eve_ultra.py`
+   - For Eve Plus: `streamlit run eve_plus.py`
+   - For Eve: `streamlit run eve.py`
+   - Browser opens at `localhost:8501`. Use a lightweight browser like Firefox.
 
-- Install dependencies:
-  pip install -r requirements.txt
+*Note*: For large files on 4GB RAM, add `--server.maxUploadSize 50` to the command.
 
-- Run the application:
-  streamlit run Eve_Ultra/app.py
+## Quick Start
 
-For detailed setup, see the Installation Guide
+1. **Launch the App**:
+   - Run `streamlit run eve_ultra.py` (or the version of choice).
+   
+2. **Load Data**:
+   - Upload a CSV/Excel/JSON file or click "Load Demo Dataset" (8,000 rows of enterprise-like sales data with realistic missing values and outliers).
 
-## Tech Stack
-- **Backend**: Python
-- **Frontend/UI**: Streamlit
-- **Data Manipulation**: Pandas, NumPy
-- **Data Filtering**: DuckDB
-- **Machine Learning**: Scikit-learn
-- **Visualization**: Plotly, Matplotlib, Seaborn
+3. **Basic Usage**:
+   - **Explore**: View EDA summary in the "Analytics" tab.
+   - **Visualize**: Create a Scatter Plot in "Visualizations".
+   - **Analyze**: Use the AI Assistant in Eve Ultra: "Show stats for sales_amount".
+   - **Model**: Train an MLP in "ML Studio" to predict revenue.
+   - **Detect Anomalies**: Run IsolationForest in "Anomaly Detection".
+   - **Export**: Generate an HTML dashboard or JSON report.
 
-### Full Documentation
-For a deep dive into the project's architecture, features, and technical implementation, please visit the full documentation in the docs/ directory.
+See `docs/tutorial.md` for a detailed walkthrough and `docs/user_guide.md` for version-specific instructions.
 
-### License
-This project is licensed under the MIT License. See the LICENSE file for details.
+## System Requirements
+- **Minimum**: 4GB RAM, 1GHz CPU (tested on HP Probook 6560b with power outages).
+- **Recommended**: 8GB RAM for larger datasets (>1M rows).
+- **Optimizations**: 
+  - Smart sampling (15K rows for ML, 10K for clustering).
+  - Adaptive processing to handle low-spec hardware.
+  - Offline functionality after setup.
+- **Dependencies**: Open-source and free; no cloud or internet required for core features.
+
+## Contributing
+We welcome contributions, especially optimizations for low-resource systems!
+1. Fork the repository on GitHub.
+2. Create a feature branch: `git checkout -b feature-name`.
+3. Develop and test on 4GB RAM hardware.
+4. Add logging for debugging: `logging.info("Your message")`.
+5. Commit changes: `git commit -m "Add feature"`.
+6. Submit a pull request.
+
+See `docs/developer_guide.md` for code structure and guidelines.
+
+## About the Developer
+Built solo by [Your Name] in 10 days with $0, overcoming constant electricity downtime on a 4GB RAM HP Probook 6560b. This project showcases creativity and technical skill in resource-constrained environments, proving enterprise-grade analytics can be achieved with minimal resources.
+
+- **Inspiration**: Pushing boundaries of innovation with so little—zero cost, low-spec hardware, and unreliable power.
+- **Contact**: [your.email@example.com] | LinkedIn: [your-linkedin] | GitHub: [your-github]
+
+## License
+MIT License - free to use, modify, and distribute. See `LICENSE` file for details.
+
+---
+
+🌟 **Star this repo** to support low-resource data science! If this project inspires you, share your story or contribute. 🚀
