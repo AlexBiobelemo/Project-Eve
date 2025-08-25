@@ -39,9 +39,8 @@ Key highlights:
 
 2. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/eve-analytics.git
-   cd eve-analytics
-   ```
+   git clone https://github.com/AlexBiobelemo/Project-Eve
+      ```
 
 3. **Run the App**:
    - For Eve Ultra (recommended): `streamlit run app.py`
