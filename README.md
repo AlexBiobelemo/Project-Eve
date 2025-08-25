@@ -1,4 +1,4 @@
-# Eve Analytics: Zero-Cost, Low-Resource Data Science 🚀
+# Advanced Enterprise Grade Data Visualisation and Machine Learning Platform
 
 
 ## Introduction
