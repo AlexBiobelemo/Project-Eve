@@ -133,5 +133,3 @@ For general usage, see `docs/user_guide.md`. For developers, see `docs/developer
 - Troubleshoot issues in `docs/faq_troubleshooting.md`.
 - For developers: Extend functionality using `docs/developer_guide.md` and `docs/api_reference.md`.
 - Share feedback or issues at [your.email@example.com].
-
-This tutorial showcases Eve Ultra’s power on a 4GB RAM system, built in 10 days with zero cost. Happy analyzing! 🚀
