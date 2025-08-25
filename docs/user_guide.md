@@ -9,9 +9,9 @@ For installation and system requirements, see `README.md`. For developers extend
 1. **Launch the App**:
    - Open a terminal and navigate to the project folder.
    - Run the desired version:
-     - Eve: `streamlit run eve.py`
-     - Eve Plus: `streamlit run eve_plus.py`
-     - Eve Ultra: `streamlit run eve_ultra.py` (recommended for advanced features)
+     - Eve: `streamlit run app.py`
+     - Eve Plus: `streamlit run app.py`
+     - Eve Ultra: `streamlit run app.py` (recommended for advanced features)
    - The app opens in your browser at `localhost:8501`. Use a lightweight browser like Firefox to minimize RAM usage.
 
 2. **Load Data**:
