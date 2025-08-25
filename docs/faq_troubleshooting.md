@@ -17,7 +17,7 @@ Use the demo dataset (8,000 rows) for best performance on low-spec hardware.
 **A**: Eve Ultra automatically samples large datasets (15K rows for ML, 10K for visualizations). To optimize:
 - Manually reduce dataset size before uploading (e.g., split CSV files).
 - Clear cache via the "Emergency Reset" button in Eve Ultra.
-- In `eve_ultra.py`, adjust sampling limits in `load_data_enterprise` if needed:
+- In `app.py`, adjust sampling limits in `load_data_enterprise` if needed:
   ```python
   if len(df) > 1000000:
       df = df.sample(n=15000, random_state=42)
