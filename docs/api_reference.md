@@ -147,5 +147,3 @@ Below are the most critical functions in **Eve Ultra**, with parameters, return 
 - **Error Handling**: Functions include try-except blocks with logging (`logging.error`) and user-friendly messages via `st.error`.
 - **Low-Resource Optimization**: All functions sample large datasets and downcast data types (e.g., float32) for 4GB RAM compatibility.
 - **Extending Functions**: Add new ML algorithms or anomaly methods in `eve_ultra.py`. Update `docs/api_reference.md` accordingly.
-
-For a full list of functions, review `eve.py`, `eve_plus.py`, and `eve_ultra.py`. Contact [your.email@example.com] for questions.
