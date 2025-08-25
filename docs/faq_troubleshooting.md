@@ -1,6 +1,6 @@
 # Eve Analytics FAQ and Troubleshooting
 
-This document addresses frequently asked questions (FAQs) and common issues for **Eve Analytics** (**Eve**, **Eve Plus**, **Eve Ultra**), optimized for low-resource systems (4GB RAM, tested on HP Probook 6560b). It is designed for all users, including non-technical users, data scientists, and developers, with solutions tailored to zero-cost development and power outage challenges.
+This document addresses frequently asked questions (FAQs) and common issues for **Eve Analytics** (**Eve**, **Eve Plus**, **Eve Ultra**), optimized for low-high resource systems). It is designed for all users, including non-technical users, data scientists, and developers, with solutions tailored to zero-cost development and power outage challenges.
 
 For usage instructions, see `docs/user_guide.md`. For developers, see `docs/developer_guide.md` and `docs/api_reference.md`.
 
