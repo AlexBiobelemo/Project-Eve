@@ -42,12 +42,11 @@ Key highlights:
    git clone https://github.com/yourusername/eve-analytics.git
    cd eve-analytics
    ```
-   (If no Git, download ZIP from GitHub.)
 
 3. **Run the App**:
-   - For Eve Ultra (recommended): `streamlit run eve_ultra.py`
-   - For Eve Plus: `streamlit run eve_plus.py`
-   - For Eve: `streamlit run eve.py`
+   - For Eve Ultra (recommended): `streamlit run app.py`
+   - For Eve Plus: `streamlit run app.py`
+   - For Eve: `streamlit run app.py`
    - Browser opens at `localhost:8501`. Use a lightweight browser like Firefox.
 
 *Note*: For large files on 4GB RAM, add `--server.maxUploadSize 50` to the command.
@@ -55,7 +54,7 @@ Key highlights:
 ## Quick Start
 
 1. **Launch the App**:
-   - Run `streamlit run eve_ultra.py` (or the version of choice).
+   - Run `streamlit run app.py` (or the version of choice).
    
 2. **Load Data**:
    - Upload a CSV/Excel/JSON file or click "Load Demo Dataset" (8,000 rows of enterprise-like sales data with realistic missing values and outliers).
