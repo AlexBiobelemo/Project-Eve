@@ -37,7 +37,6 @@ warnings.filterwarnings('ignore')
 # --- Performance Configuration with 2025 Streamlit Features ---
 st.set_page_config(
     page_title="Enterprise Data Analytics Platform",
-    page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -65,16 +64,19 @@ logging.basicConfig(filename='enterprise_app.log', level=logging.INFO,
 session_keys = [
     'chart_configs', 'data_loaded', 'filter_state', 'last_uploaded_files', 'dfs',
     'selected_df', 'trained_models', 'eda_cache', 'performance_metrics', 'chat_history',
-    'cleaning_suggestions', 'anomaly_results', 'theme_preference', 'accessibility_mode'
+    'cleaning_suggestions', 'anomaly_results', 'theme_preference', 'accessibility_mode',
+    'preview_data'  # Add new key
 ]
 
 for key in session_keys:
     if key not in st.session_state:
         st.session_state[key] = [] if key in ['chart_configs', 'last_uploaded_files', 'chat_history'] else \
             {} if key in ['dfs', 'trained_models', 'eda_cache', 'performance_metrics',
-                          'filter_state', 'cleaning_suggestions', 'anomaly_results'] else \
+                          'filter_state', 'cleaning_suggestions', 'anomaly_results', 'preview_data'] else \
                 False if key in ['data_loaded', 'accessibility_mode'] else \
-                    "Light" if key == 'theme_preference' else None
+                    "Light" if key == 'theme_preference' else \
+                        None if key == 'selected_df' else {}
+
 
 
 # --- Enterprise-Grade Helper Functions ---
@@ -290,7 +292,7 @@ def detect_anomalies_enterprise(df_hash: str, method: str, params: Dict[str, Any
             contamination = params.get('contamination', 0.1)
             iso = IsolationForest(contamination=contamination, random_state=42, n_estimators=50)
             outliers = iso.fit_predict(data)
-            anomaly_scores = iso.decision_function(data)
+            anomaly_scores = -iso.decision_function(data)
 
         elif method == "Z-Score":
             threshold = params.get('threshold', 3.0)
@@ -347,7 +349,7 @@ def train_mlp_model(df: pd.DataFrame, x_cols: List[str], y_col: str, model_type:
     model_key = f"mlp_{hash(str(x_cols))}_{y_col}_{model_type}_{hidden_layers}_{max_iter}"
 
     if model_key in st.session_state.trained_models:
-        st.info("♻️ Using cached MLP model")
+        st.info("Using cached MLP model")
         return st.session_state.trained_models[model_key]
 
     try:
@@ -362,7 +364,7 @@ def train_mlp_model(df: pd.DataFrame, x_cols: List[str], y_col: str, model_type:
         # Sample for performance on low-spec hardware
         if len(df) > 20000:
             df_sample = df.sample(n=15000, random_state=42)
-            st.info("⚡ Using 15K sample for MLP training performance")
+            st.info("Using 15K sample for MLP training performance")
         else:
             df_sample = df
 
@@ -509,12 +511,12 @@ def process_natural_query(query: str) -> Dict[str, Any]:
                 col = matching_cols[0]
                 if df[col].dtype in ['int64', 'float64']:
                     df[col] = df[col].fillna(df[col].median())
-                    response["message"] = f"✅ Filled NaNs in '{col}' with median value"
+                    response["message"] = f"Filled NaNs in '{col}' with median value"
                 else:
                     mode_val = df[col].mode()
                     fill_val = mode_val.iloc[0] if len(mode_val) > 0 else 'Unknown'
                     df[col] = df[col].fillna(fill_val)
-                    response["message"] = f"✅ Filled NaNs in '{col}' with mode value: {fill_val}"
+                    response["message"] = f"Filled NaNs in '{col}' with mode value: {fill_val}"
 
                 st.session_state.selected_df = df
                 response["success"] = True
@@ -532,11 +534,11 @@ def process_natural_query(query: str) -> Dict[str, Any]:
                 col = matching_cols[0]
                 if df[col].dtype in ['int64', 'float64']:
                     stats = df[col].describe()
-                    response["message"] = f"📊 Statistics for '{col}':\n" + "\n".join(
+                    response["message"] = f"Statistics for '{col}':\n" + "\n".join(
                         [f"{k}: {v:.2f}" for k, v in stats.items()])
                 else:
                     value_counts = df[col].value_counts().head(5)
-                    response["message"] = f"📊 Top values for '{col}':\n" + "\n".join(
+                    response["message"] = f"Top values for '{col}':\n" + "\n".join(
                         [f"{k}: {v}" for k, v in value_counts.items()])
 
                 response["success"] = True
@@ -569,12 +571,12 @@ def process_natural_query(query: str) -> Dict[str, Any]:
                         filtered_df = df[df[col] <= value]
 
                     st.session_state.selected_df = filtered_df
-                    response["message"] = f"✅ Filtered data: {len(filtered_df)} rows where {col} {operator} {value}"
+                    response["message"] = f"Filtered data: {len(filtered_df)} rows where {col} {operator} {value}"
                     response["success"] = True
                     response["action"] = "filter_data"
                     return response
                 except:
-                    response["message"] = f"❌ Could not apply filter to column '{col}'"
+                    response["message"] = f"Could not apply filter to column '{col}'"
                     return response
 
         # Create chart pattern
@@ -597,13 +599,13 @@ def process_natural_query(query: str) -> Dict[str, Any]:
                     "id": len(st.session_state.chart_configs)
                 }
                 st.session_state.chart_configs.append(new_config)
-                response["message"] = f"✅ Created {chart_type_map[chart_type]} configuration"
+                response["message"] = f"Created {chart_type_map[chart_type]} configuration"
                 response["success"] = True
                 response["action"] = "create_chart"
                 return response
 
         # Default response for unrecognized queries
-        response["message"] = """🤖 I can help with:
+        response["message"] = """I can help with:
 • **Data Cleaning**: "Clean NaNs in sales", "Remove duplicates"
 • **Statistics**: "Show stats for age", "Summary of revenue"  
 • **Filtering**: "Filter age > 25", "Show region equals North"
@@ -612,7 +614,7 @@ def process_natural_query(query: str) -> Dict[str, Any]:
 Try rephrasing your request!"""
 
     except Exception as e:
-        response["message"] = f"❌ Error processing query: {str(e)}"
+        response["message"] = f"Error processing query: {str(e)}"
 
     return response
 
@@ -749,7 +751,7 @@ def perform_kmeans_optimized(df: pd.DataFrame, features: List[str], k: int,
     model_key = f"kmeans_{hash(str(features))}_{k}_{preprocess}_{remove_outliers}"
 
     if model_key in st.session_state.trained_models:
-        st.info("♻️ Using cached K-means model")
+        st.info("Using cached K-means model")
         return st.session_state.trained_models[model_key]
 
     try:
@@ -761,7 +763,7 @@ def perform_kmeans_optimized(df: pd.DataFrame, features: List[str], k: int,
         # Sample for performance
         if len(data) > 20000:
             data = data.sample(n=15000, random_state=42)
-            st.info("⚡ Using 15K sample for K-means performance")
+            st.info("Using 15K sample for K-means performance")
 
         original_data = data.copy()
 
@@ -812,7 +814,7 @@ def perform_random_forest_optimized(df: pd.DataFrame, x_cols: List[str], y_col: 
     model_key = f"rf_{hash(str(x_cols))}_{y_col}_{task_type}_{preprocess}_{tune}"
 
     if model_key in st.session_state.trained_models:
-        st.info("♻️ Using cached Random Forest model")
+        st.info("Using cached Random Forest model")
         return st.session_state.trained_models[model_key]
 
     try:
@@ -824,7 +826,7 @@ def perform_random_forest_optimized(df: pd.DataFrame, x_cols: List[str], y_col: 
         # Sample for performance
         if len(df) > 20000:
             df_sample = df.sample(n=15000, random_state=42)
-            st.info("⚡ Using 15K sample for Random Forest training")
+            st.info("Using 15K sample for Random Forest training")
         else:
             df_sample = df
 
@@ -1051,13 +1053,13 @@ def generate_enterprise_dashboard_html(df: pd.DataFrame, eda_data: Dict[str, Any
         </head>
         <body>
             <div class="header">
-                <h1>🚀 Enterprise Data Analytics Dashboard</h1>
+                <h1>Enterprise Data Analytics Dashboard</h1>
                 <p><strong>Generated:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | 
                 <strong>Theme:</strong> {theme}</p>
             </div>
 
             <div class="card">
-                <h2>📊 Executive Summary</h2>
+                <h2>Executive Summary</h2>
                 <div class="metric">
                     <h3>Data Points</h3>
                     <div class="value">{len(df):,}</div>
@@ -1077,7 +1079,7 @@ def generate_enterprise_dashboard_html(df: pd.DataFrame, eda_data: Dict[str, Any
             </div>
 
             <div class="card">
-                <h2>💡 Key Data Insights</h2>
+                <h2>Key Data Insights</h2>
                 <ul>
         """
 
@@ -1228,6 +1230,50 @@ def generate_advanced_eda_report(df: pd.DataFrame) -> Dict[str, Any]:
         logging.error(f"Advanced EDA report error: {e}")
         return {"error": f"EDA report generation failed: {str(e)}"}
 
+@st.cache_data(show_spinner="Generating data preview...", max_entries=3)
+def generate_data_preview(df_hash: str, max_rows: int = 50, max_cols: int = 20) -> Dict[str, Any]:
+    """Generate a lightweight data preview with metadata."""
+    try:
+        df = st.session_state.selected_df
+        # Use a small sample for performance
+        preview_df = df.sample(n=min(max_rows, len(df)), random_state=42) if len(df) > max_rows else df
+        if len(df.columns) > max_cols:
+            preview_df = preview_df.iloc[:, :max_cols]  # Limit columns for display
+        
+        # Compute metadata
+        metadata = {
+            'columns': [],
+            'total_rows': len(df),
+            'total_columns': len(df.columns),
+            'sample_rows': len(preview_df),
+            'sample_columns': len(preview_df.columns)
+        }
+        
+        for col in preview_df.columns:
+            col_info = {
+                'name': col,
+                'dtype': str(df[col].dtype),
+                'missing_count': int(df[col].isnull().sum()),
+                'missing_percent': float(df[col].isnull().mean() * 100),
+                'unique_count': int(df[col].nunique()),
+                'sample_values': preview_df[col].dropna().head(3).tolist()[:3]
+            }
+            # Add basic stats for numeric columns
+            if df[col].dtype in ['int64', 'float64']:
+                col_info.update({
+                    'mean': float(df[col].mean()) if not df[col].empty else None,
+                    'std': float(df[col].std()) if not df[col].empty else None
+                })
+            metadata['columns'].append(col_info)
+        
+        return {
+            'preview_data': preview_df,
+            'metadata': metadata,
+            'quality_score': df.attrs.get('quality_score', 50.0)
+        }
+    except Exception as e:
+        logging.error(f"Data preview generation error: {e}")
+        return {'error': f"Preview generation failed: {str(e)}"}
 
 def perform_automated_feature_engineering(df: pd.DataFrame, target_col: str = None) -> pd.DataFrame:
     """Perform automated feature engineering."""
@@ -1479,22 +1525,22 @@ def process_advanced_natural_query(query: str) -> Dict[str, Any]:
                         best_model = model_results["comparison_summary"]["best_model"]
                         best_score = model_results["comparison_summary"]["best_score"]
 
-                        response["message"] = f"✅ Trained {task_type} models successfully!\n"
-                        response["message"] += f"🏆 Best Model: {best_model}\n"
-                        response["message"] += f"📊 Best Score: {best_score:.4f}\n"
+                        response["message"] = f"Trained {task_type} models successfully!\n"
+                        response["message"] += f"Best Model: {best_model}\n"
+                        response["message"] += f"Best Score: {best_score:.4f}\n"
                         response[
-                            "message"] += f"⚡ Training completed in {model_results[best_model]['training_time']:.2f}s"
+                            "message"] += f"Training completed in {model_results[best_model]['training_time']:.2f}s"
 
                         response["success"] = True
                         response["action"] = "train_model"
                         response["data"] = model_results
                     else:
-                        response["message"] = f"❌ Model training failed: {model_results['error']}"
+                        response["message"] = f"Model training failed: {model_results['error']}"
 
                 except Exception as e:
-                    response["message"] = f"❌ Error during model training: {str(e)}"
+                    response["message"] = f"Error during model training: {str(e)}"
             else:
-                response["message"] = "❌ Could not find suitable features or target column"
+                response["message"] = "Could not find suitable features or target column"
 
             return response
 
@@ -1519,21 +1565,21 @@ def process_advanced_natural_query(query: str) -> Dict[str, Any]:
                         optimal_k = cluster_results["kmeans"]["optimal_k"]
                         silhouette = cluster_results["kmeans"]["best_silhouette_score"]
 
-                        response["message"] = f"✅ Clustering analysis completed!\n"
-                        response["message"] += f"🎯 Optimal Clusters: {optimal_k}\n"
-                        response["message"] += f"📊 Silhouette Score: {silhouette:.4f}\n"
-                        response["message"] += f"🔍 Features Used: {', '.join(available_features[:3])}"
+                        response["message"] = f"Clustering analysis completed!\n"
+                        response["message"] += f"Optimal Clusters: {optimal_k}\n"
+                        response["message"] += f"Silhouette Score: {silhouette:.4f}\n"
+                        response["message"] += f"Features Used: {', '.join(available_features[:3])}"
 
                         response["success"] = True
                         response["action"] = "clustering"
                         response["data"] = cluster_results
                     else:
-                        response["message"] = f"❌ Clustering failed: {cluster_results['error']}"
+                        response["message"] = f"Clustering failed: {cluster_results['error']}"
 
                 except Exception as e:
-                    response["message"] = f"❌ Error during clustering: {str(e)}"
+                    response["message"] = f"Error during clustering: {str(e)}"
             else:
-                response["message"] = "❌ Could not find suitable numeric features for clustering"
+                response["message"] = "Could not find suitable numeric features for clustering"
 
             return response
 
@@ -1549,8 +1595,8 @@ def process_advanced_natural_query(query: str) -> Dict[str, Any]:
 
                 if new_features:
                     st.session_state.selected_df = df_engineered
-                    response["message"] = f"✅ Created {len(new_features)} new features:\n"
-                    response["message"] += f"🔧 {', '.join(new_features[:5])}"
+                    response["message"] = f"Created {len(new_features)} new features:\n"
+                    response["message"] += f"{', '.join(new_features[:5])}"
                     if len(new_features) > 5:
                         response["message"] += f" and {len(new_features) - 5} more..."
 
@@ -1558,10 +1604,10 @@ def process_advanced_natural_query(query: str) -> Dict[str, Any]:
                     response["action"] = "feature_engineering"
                     response["data"] = {"new_features": new_features}
                 else:
-                    response["message"] = "⚠️ No new features could be created"
+                    response["message"] = "No new features could be created"
 
             except Exception as e:
-                response["message"] = f"❌ Feature engineering failed: {str(e)}"
+                response["message"] = f"Feature engineering failed: {str(e)}"
 
             return response
 
@@ -1573,24 +1619,24 @@ def process_advanced_natural_query(query: str) -> Dict[str, Any]:
                 eda_report = generate_advanced_eda_report(df)
 
                 if "error" not in eda_report:
-                    response["message"] = "✅ Advanced EDA report generated!\n"
+                    response["message"] = "Advanced EDA report generated!\n"
                     response[
-                        "message"] += f"📊 Dataset: {eda_report['basic_info']['rows']:,} rows × {eda_report['basic_info']['columns']} columns\n"
-                    response["message"] += f"💾 Memory: {eda_report['basic_info']['memory_usage_mb']:.1f} MB\n"
-                    response["message"] += f"🔍 Missing Values: {eda_report['basic_info']['missing_values']:,}\n"
+                        "message"] += f"Dataset: {eda_report['basic_info']['rows']:,} rows × {eda_report['basic_info']['columns']} columns\n"
+                    response["message"] += f"Memory: {eda_report['basic_info']['memory_usage_mb']:.1f} MB\n"
+                    response["message"] += f"Missing Values: {eda_report['basic_info']['missing_values']:,}\n"
 
                     if eda_report['correlations'].get('high_correlations'):
                         response[
-                            "message"] += f"🔗 High Correlations Found: {len(eda_report['correlations']['high_correlations'])}"
+                            "message"] += f"High Correlations Found: {len(eda_report['correlations']['high_correlations'])}"
 
                     response["success"] = True
                     response["action"] = "eda_report"
                     response["data"] = eda_report
                 else:
-                    response["message"] = f"❌ EDA report failed: {eda_report['error']}"
+                    response["message"] = f"EDA report failed: {eda_report['error']}"
 
             except Exception as e:
-                response["message"] = f"❌ Error generating EDA report: {str(e)}"
+                response["message"] = f"Error generating EDA report: {str(e)}"
 
             return response
 
@@ -1598,7 +1644,7 @@ def process_advanced_natural_query(query: str) -> Dict[str, Any]:
         return process_natural_query(query)
 
     except Exception as e:
-        response["message"] = f"❌ Error processing advanced query: {str(e)}"
+        response["message"] = f"Error processing advanced query: {str(e)}"
         return response
 
 
@@ -1613,7 +1659,7 @@ def main_enterprise() -> None:
         col1, col2, col3 = st.columns([3, 1, 1], gap="medium")
 
         with col1:
-            st.title("🚀 Enterprise Data Analytics Platform")
+            st.title("Enterprise Data Analytics Platform")
             st.markdown("*AI-Powered • Enterprise-Grade • Low-Resource Optimized*")
 
         with col2:
@@ -1628,7 +1674,7 @@ def main_enterprise() -> None:
                 st.rerun()
 
         with col3:
-            if st.button("🔄 Refresh", help="Refresh the application"):
+            if st.button("Refresh", help="Refresh the application"):
                 st.rerun()
 
         # Performance monitoring
@@ -1642,14 +1688,14 @@ def main_enterprise() -> None:
             with col1:
                 file_type = st.selectbox("File Type", FILE_TYPES, help="Select your data format")
                 uploaded_files = st.file_uploader(
-                    "📁 Upload Enterprise Data Files (Batch Supported)",
+                    "Upload Enterprise Data Files (Batch Supported)",
                     type=['csv', 'xlsx', 'json', 'xls'],
                     accept_multiple_files=True,
                     help="Supports CSV, Excel, JSON formats with enterprise-grade error handling"
                 )
 
             with col2:
-                if st.button("🎯 Load Demo Dataset", key="enterprise_demo_btn"):
+                if st.button("Load Demo Dataset", key="enterprise_demo_btn"):
                     # Enhanced demo data with more enterprise-like structure
                     np.random.seed(42)
                     dates = pd.date_range('2023-01-01', periods=8000, freq='H')
@@ -1673,19 +1719,19 @@ def main_enterprise() -> None:
                     st.session_state.dfs['enterprise_demo.csv'] = demo_data
                     st.session_state.selected_df = demo_data
                     st.session_state.data_loaded = True
-                    st.success("✅ Enterprise demo dataset loaded! (8,000 rows)")
+                    st.success("Enterprise demo dataset loaded! (8,000 rows)")
                     st.rerun()
 
         if not uploaded_files and not st.session_state.data_loaded:
             # Enhanced welcome screen with enterprise features showcase
-            st.info("🚀 **Welcome to the Enterprise Data Analytics Platform**")
+            st.info("Welcome to the Enterprise Data Analytics Platform")
 
             # Feature highlights in responsive columns
             col1, col2, col3 = st.columns(3, gap="large")
 
             with col1:
                 st.markdown("""
-                **🤖 AI-Powered Analytics**
+                **AI-Powered Analytics**
                 - Natural language queries
                 - Auto-cleaning suggestions
                 - Intelligent anomaly detection
@@ -1694,7 +1740,7 @@ def main_enterprise() -> None:
 
             with col2:
                 st.markdown("""
-                **📊 Enterprise Visualizations**
+                **Enterprise Visualizations**
                 - Interactive dashboards
                 - Real-time sparklines
                 - Responsive flex layouts
@@ -1703,7 +1749,7 @@ def main_enterprise() -> None:
 
             with col3:
                 st.markdown("""
-                **⚡ Performance Optimized**
+                **Performance Optimized**
                 - Smart sampling (4GB RAM ready)
                 - Advanced caching
                 - Hardware-aware processing
@@ -1723,7 +1769,7 @@ def main_enterprise() -> None:
                 st.session_state.trained_models = {}
 
             # Process files with enhanced progress tracking
-            with st.spinner("🚀 Processing files with enterprise optimization..."):
+            with st.spinner("Processing files with enterprise optimization..."):
                 progress_bar = st.progress(0)
                 load_times = []
                 quality_scores = []
@@ -1747,25 +1793,25 @@ def main_enterprise() -> None:
 
                         # Enhanced success message with quality metrics
                         speed_mb_s = (len(file_content) / 1024 / 1024) / load_time if load_time > 0 else 0
-                        quality_icon = "🟢" if quality_score > 80 else "🟡" if quality_score > 60 else "🔴"
-                        st.success(f"✅ {uploaded_file.name}: {df.shape[0]:,} × {df.shape[1]} | "
+                        quality_icon = "Green" if quality_score > 80 else "Yellow" if quality_score > 60 else "Red"
+                        st.success(f"{uploaded_file.name}: {df.shape[0]:,} × {df.shape[1]} | "
                                    f"Speed: {speed_mb_s:.1f} MB/s | "
                                    f"Quality: {quality_score:.0f}/100 {quality_icon}")
                     else:
-                        st.error(f"❌ Failed to load {uploaded_file.name}")
+                        st.error(f"Failed to load {uploaded_file.name}")
 
                 # Enhanced overall performance metrics
                 if load_times and quality_scores:
                     col1, col2, col3, col4 = st.columns(4, gap="medium")
                     with col1:
-                        st.metric("⏱️ Avg Load Time", f"{np.mean(load_times):.2f}s")
+                        st.metric("Avg Load Time", f"{np.mean(load_times):.2f}s")
                     with col2:
                         total_rows = sum(len(df) for df in st.session_state.dfs.values())
-                        st.metric("📊 Total Rows", f"{total_rows:,}")
+                        st.metric("Total Rows", f"{total_rows:,}")
                     with col3:
-                        st.metric("📈 Avg Quality", f"{np.mean(quality_scores):.0f}/100")
+                        st.metric("Avg Quality", f"{np.mean(quality_scores):.0f}/100")
                     with col4:
-                        st.metric("📁 Files Loaded", len(uploaded_files))
+                        st.metric("Files Loaded", len(uploaded_files))
 
         if not st.session_state.dfs:
             st.error("No files were successfully loaded. Please check your file formats.")
@@ -1773,7 +1819,7 @@ def main_enterprise() -> None:
 
         # --- Dataset Selection with Enhanced Info ---
         selected_file = st.selectbox(
-            "🗂️ Select Dataset for Analysis",
+            "Select Dataset for Analysis",
             list(st.session_state.dfs.keys()),
             help="Choose which dataset to analyze with enterprise features"
         )
@@ -1796,32 +1842,32 @@ def main_enterprise() -> None:
             datetime_cols = df.select_dtypes(include=['datetime']).columns.tolist()
 
             with col1:
-                st.metric("📊 Rows", f"{len(df):,}")
+                st.metric("Rows", f"{len(df):,}")
             with col2:
-                st.metric("📋 Columns", f"{len(df.columns)}")
+                st.metric("Columns", f"{len(df.columns)}")
             with col3:
-                st.metric("🔢 Numeric", len(numeric_cols))
+                st.metric("Numeric", len(numeric_cols))
             with col4:
-                st.metric("🏷️ Categorical", len(categorical_cols))
+                st.metric("Categorical", len(categorical_cols))
             with col5:
                 memory_mb = df.memory_usage(deep=True).sum() / 1024 ** 2
                 quality_score = df.attrs.get('quality_score', 0)
-                st.metric("💾 Memory", f"{memory_mb:.1f} MB", delta=f"Q: {quality_score:.0f}/100")
+                st.metric("Memory", f"{memory_mb:.1f} MB", delta=f"Q: {quality_score:.0f}/100")
 
         # --- Sidebar with Global Filters ---
         with st.sidebar:
-            st.header("⚙️ Global Controls")
+            st.header("Global Controls")
 
             # Performance monitor
             if st.session_state.trained_models:
-                st.success(f"🎯 {len(st.session_state.trained_models)} cached models")
+                st.success(f"{len(st.session_state.trained_models)} cached models")
 
             # Enhanced filtering
-            st.subheader("🔍 Smart Data Filtering")
+            st.subheader("Smart Data Filtering")
             with st.expander("Advanced Filters", expanded=False):
                 # Categorical filters (optimized)
                 if categorical_cols:
-                    st.write("**📊 Categorical Filters:**")
+                    st.write("**Categorical Filters:**")
                     for col in categorical_cols[:4]:
                         try:
                             unique_vals = df[col].dropna().unique()
@@ -1842,7 +1888,7 @@ def main_enterprise() -> None:
 
                 # Numeric filters (enhanced)
                 if numeric_cols:
-                    st.write("**🔢 Numeric Range Filters:**")
+                    st.write("**Numeric Range Filters:**")
                     for col in numeric_cols[:6]:
                         try:
                             col_data = df[col].dropna()
@@ -1861,7 +1907,7 @@ def main_enterprise() -> None:
                                         st.session_state.filter_state[f"filter_{col}"] = range_val
                         except Exception as e:
                             st.warning(f"Numeric filter error for {col}: {e}")
-        
+
         # Apply filters globally
         if st.session_state.filter_state:
             filter_state_str = json.dumps(st.session_state.filter_state, default=str)
@@ -1871,34 +1917,34 @@ def main_enterprise() -> None:
 
             if len(df_filtered) != len(df):
                 reduction_pct = (1 - len(df_filtered) / len(df)) * 100
-                st.info(f"🔍 Active Filters: {len(df_filtered):,} rows ({reduction_pct:.1f}% reduction)")
+                st.info(f"Active Filters: {len(df_filtered):,} rows ({reduction_pct:.1f}% reduction)")
         else:
             df_filtered = df
 
         # --- Main Application Tabs ---
-        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
-            ["🤖 AI Assistant", "📊 Analytics", "🧹 Data Cleaning", "🔍 Anomaly Detection", "📈 Visualizations", "🧠 ML Studio"]
+        tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(
+            ["AI Assistant", "Analytics", "Data Preview", "Data Cleaning", "Anomaly Detection", "Visualizations", "ML Studio"]
         )
 
         with tab1:
-            st.header("🤖 Conversational AI Assistant")
+            st.header("Conversational AI Assistant")
             st.markdown("*Ask questions about your data in natural language*")
             if query := st.chat_input("Ask about your data"):
                 response = process_natural_query(query)
                 st.write(response["message"])
 
         with tab2:
-            st.header("📊 Enterprise Data Analytics")
+            st.header("Enterprise Data Analytics")
             try:
                 eda_data = compute_eda_summary(df_hash, df.shape)
-                st.subheader("💡 Key Data Insights")
+                st.subheader("Key Data Insights")
                 insight_col1, insight_col2 = st.columns([2, 1], gap="large")
                 with insight_col1:
                     for insight in eda_data.get('insights', ['No insights available'])[:3]:
-                        st.info(f"📈 {insight}")
+                        st.info(f"{insight}")
                 with insight_col2:
                     if len(numeric_cols) > 0:
-                        st.write("**🔥 Numeric Trends**")
+                        st.write("**Numeric Trends**")
                         for col in numeric_cols[:3]:
                             try:
                                 sample_data = df[col].dropna().sample(min(100, len(df[col].dropna())), random_state=42)
@@ -1910,17 +1956,17 @@ def main_enterprise() -> None:
                             except:
                                 pass
                 
-                with st.expander("📋 Enterprise Data Explorer", expanded=False):
+                with st.expander("Dataset Explorer", expanded=False):
                     preview_col1, preview_col2 = st.columns([2, 1], gap="large")
                     with preview_col1:
-                        st.markdown("**📊 Dataset Overview**")
+                        st.markdown("**Dataset Overview**")
                         overview_data = {
                             "Metric": ["Total Rows", "Active Columns", "Memory Usage", "Data Quality Score", "Missing Data %", "Duplicate Rows"],
                             "Value": [f"{len(df):,}", f"{len(df.columns)}", f"{df.memory_usage(deep=True).sum() / 1024 ** 2:.1f} MB", f"{df.attrs.get('quality_score', 0):.0f}/100", f"{(df.isnull().sum().sum() / (len(df) * len(df.columns)) * 100):.1f}%", f"{df.duplicated().sum():,}"]
                         }
                         st.dataframe(pd.DataFrame(overview_data), hide_index=True, use_container_width=True)
                     with preview_col2:
-                        st.markdown("**🏷️ Column Analysis**")
+                        st.markdown("**Column Analysis**")
                         type_analysis = {
                             "Type": ["Numeric", "Categorical", "DateTime", "Boolean", "Other"],
                             "Count": [len(numeric_cols), len(categorical_cols), len(datetime_cols), len(df.select_dtypes(include=['bool']).columns), len(df.columns) - len(numeric_cols) - len(categorical_cols) - len(datetime_cols) - len(df.select_dtypes(include=['bool']).columns)]
@@ -1929,37 +1975,167 @@ def main_enterprise() -> None:
             except Exception as e:
                 st.error(f"EDA analysis failed: {e}")
 
-        with tab3:
-            st.header("🧹 Interactive Data Cleaning Studio")
-            if st.button("🔍 Analyze Data Quality", key="analyze_quality_btn"):
-                with st.spinner("Analyzing data quality..."):
-                    suggestions = suggest_cleaning_enterprise(df_hash)
-                    st.session_state.cleaning_suggestions = suggestions
+        with tab3:  # Data Preview Tab (Unchanged)
+            st.header("Exploratory Data Preview")
+            st.markdown("*Quick glance at your dataset with metadata and quality insights*")
             
-            if st.session_state.cleaning_suggestions:
-                st.subheader("🎯 Automated Cleaning Suggestions")
-                for idx, suggestion in enumerate(st.session_state.cleaning_suggestions):
-                    with st.container():
-                        col1, col2, col3 = st.columns([3, 1, 1], gap="medium")
-                        with col1:
-                            severity_color = {"high": "🔴", "medium": "🟡", "low": "🟢"}
-                            st.write(f"{severity_color[suggestion['severity']]} {suggestion['description']}")
-                        with col2:
-                            if st.button("✅ Apply", key=f"apply_suggestion_{idx}"):
-                                if apply_cleaning_suggestion(suggestion):
-                                    st.success(f"Applied: {suggestion['description']}")
+            try:
+                if st.session_state.data_loaded:
+                    preview_data = generate_data_preview(df_hash)
+                    
+                    if 'error' in preview_data:
+                        st.error(preview_data['error'])
+                    else:
+                        # Responsive layout for preview
+                        preview_col1, preview_col2 = st.columns([3, 2], gap="medium")
+                        
+                        with preview_col1:
+                            st.subheader("Data Sample")
+                            st.markdown(f"Showing {preview_data['metadata']['sample_rows']} of {preview_data['metadata']['total_rows']:,} rows")
+                            st.dataframe(
+                                preview_data['preview_data'],
+                                use_container_width=True,
+                                height=300,
+                                hide_index=False
+                            )
+                        
+                        with preview_col2:
+                            st.subheader("Dataset Metadata")
+                            metadata_df = pd.DataFrame([
+                                {
+                                    'Column': col['name'],
+                                    'Type': col['dtype'],
+                                    'Missing %': f"{col['missing_percent']:.1f}%",
+                                    'Unique': col['unique_count'],
+                                    'Sample Values': ', '.join(map(str, col['sample_values'][:3]))
+                                } for col in preview_data['metadata']['columns']
+                            ])
+                            st.dataframe(
+                                metadata_df,
+                                use_container_width=True,
+                                column_config={
+                                    'Missing %': st.column_config.ProgressColumn(
+                                        'Missing %',
+                                        min_value=0,
+                                        max_value=100,
+                                        format="%.1f%%"
+                                    )
+                                }
+                            )
+                        
+                        # Additional insights in expander
+                        with st.expander("Detailed Column Insights"):
+                            for col in preview_data['metadata']['columns']:
+                                st.markdown(f"**{col['name']} ({col['dtype']})**")
+                                st.write(f"- Missing: {col['missing_count']:,} ({col['missing_percent']:.1f}%)")
+                                st.write(f"- Unique Values: {col['unique_count']:,}")
+                                if 'mean' in col and col['mean'] is not None:
+                                    st.write(f"- Mean: {col['mean']:.2f}")
+                                    st.write(f"- Std Dev: {col['std']:.2f}")
+                                st.write("---")
+                        
+                        # Data quality indicator
+                        quality_score = preview_data['quality_score']
+                        quality_color = "Green" if quality_score > 80 else "Yellow" if quality_score > 60 else "Red"
+                        st.metric("Data Quality Score", f"{quality_score:.0f}/100", delta=quality_color)
+                        
+            except Exception as e:
+                st.error(f"Data preview error: {e}")
+                logging.error(f"Data preview tab error: {e}")
+
+        with tab4:  # Data Cleaning Tab
+            st.header("Enterprise Data Cleaning")
+            st.markdown("*Automated cleaning suggestions and manual overrides*")
+            
+            try:
+                if st.session_state.data_loaded:
+                    # Generate cleaning suggestions
+                    cleaning_suggestions = suggest_cleaning_enterprise(df_hash)
+                    
+                    if not cleaning_suggestions:
+                        st.info("No cleaning suggestions available for the current dataset.")
+                    else:
+                        st.subheader("Cleaning Suggestions")
+                        suggestion_df = pd.DataFrame([
+                            {
+                                'Column': s['column'],
+                                'Issue': s['description'],
+                                'Severity': s['severity'].capitalize(),
+                                'Action': s['type']
+                            } for s in cleaning_suggestions
+                        ])
+                        st.dataframe(
+                            suggestion_df,
+                            use_container_width=True,
+                            column_config={
+                                'Severity': st.column_config.TextColumn(
+                                    'Severity',
+                                    help="High: Urgent action needed, Medium: Recommended, Low: Optional"
+                                )
+                            }
+                        )
+                        
+                        # Allow applying suggestions
+                        st.subheader("Apply Cleaning Actions")
+                        selected_suggestion = st.selectbox(
+                            "Select Suggestion to Apply",
+                            options=[f"{s['column']} - {s['description']}" for s in cleaning_suggestions],
+                            key="cleaning_suggestion_select"
+                        )
+                        if st.button("Apply Selected Cleaning", key="apply_cleaning_btn"):
+                            suggestion_idx = [i for i, s in enumerate(cleaning_suggestions)
+                                            if f"{s['column']} - {s['description']}" == selected_suggestion]
+                            if suggestion_idx:
+                                success = apply_cleaning_suggestion(cleaning_suggestions[suggestion_idx[0]])
+                                if success:
+                                    st.success(f"Applied cleaning to {cleaning_suggestions[suggestion_idx[0]]['column']}")
+                                    st.session_state.dfs[selected_file] = st.session_state.selected_df
                                     st.rerun()
                                 else:
-                                    st.error("Failed to apply suggestion")
-                        with col3:
-                            if st.button("❌ Skip", key=f"skip_suggestion_{idx}"):
-                                st.session_state.cleaning_suggestions.pop(idx)
-                                st.rerun()
+                                    st.error("Failed to apply cleaning suggestion.")
+                        
+                        # Manual cleaning options
+                        with st.expander("Manual Cleaning Options"):
+                            cleaning_col1, cleaning_col2 = st.columns(2, gap="medium")
+                            with cleaning_col1:
+                                clean_col = st.selectbox("Select Column", df.columns, key="manual_clean_col")
+                                clean_method = st.selectbox("Cleaning Method", CLEANING_METHODS, key="manual_clean_method")
+                            with cleaning_col2:
+                                if clean_method in ["mean", "median", "mode"]:
+                                    fill_value = st.number_input("Custom Fill Value (optional)", value=0.0, key="manual_fill_value") if clean_method in ["mean", "median"] else st.text_input("Custom Fill Value (optional)", value="Unknown", key="manual_fill_text")
+                            
+                            if st.button("Apply Manual Cleaning", key="apply_manual_clean_btn"):
+                                try:
+                                    df_cleaned = df.copy()
+                                    if clean_method == "drop":
+                                        df_cleaned = df_cleaned.drop(columns=[clean_col])
+                                    elif clean_method in ["mean", "median"]:
+                                        fill_val = fill_value if clean_method == "mean" else df_cleaned[clean_col].median()
+                                        df_cleaned[clean_col] = df_cleaned[clean_col].fillna(fill_val)
+                                    elif clean_method == "mode":
+                                        fill_val = fill_value if fill_value else df_cleaned[clean_col].mode().iloc[0] if len(df_cleaned[clean_col].mode()) > 0 else "Unknown"
+                                        df_cleaned[clean_col] = df_cleaned[clean_col].fillna(fill_val)
+                                    elif clean_method == "forward_fill":
+                                        df_cleaned[clean_col] = df_cleaned[clean_col].ffill()
+                                    elif clean_method == "backward_fill":
+                                        df_cleaned[clean_col] = df_cleaned[clean_col].bfill()
+                                    
+                                    st.session_state.selected_df = df_cleaned
+                                    st.session_state.dfs[selected_file] = df_cleaned
+                                    st.success(f"Applied {clean_method} cleaning to {clean_col}")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Manual cleaning failed: {e}")
+                else:
+                    st.info("Please load a dataset to perform data cleaning.")
+            except Exception as e:
+                st.error(f"Data cleaning error: {e}")
+                logging.error(f"Data cleaning tab error: {e}")
 
-        with tab4:
-            st.header("🔍 Enterprise Anomaly Detection")
+        with tab5:  # Anomaly Detection Tab
+            st.header("Enterprise Anomaly Detection")
             if not numeric_cols:
-                st.warning("⚠️ No numeric columns available for anomaly detection")
+                st.warning("No numeric columns available for anomaly detection")
             else:
                 config_col1, config_col2, config_col3 = st.columns(3, gap="medium")
                 with config_col1:
@@ -1977,7 +2153,7 @@ def main_enterprise() -> None:
                 with config_col3:
                     selected_features = st.multiselect("Features for Detection", numeric_cols, default=numeric_cols[:3], key="anomaly_features")
                 
-                if st.button("🚀 Detect Anomalies", key="detect_anomalies_btn") and selected_features:
+                if st.button("Detect Anomalies", key="detect_anomalies_btn") and selected_features:
                     with st.spinner(f"Running {anomaly_method} anomaly detection..."):
                         anomaly_result = detect_anomalies_enterprise(df_hash, anomaly_method, params)
                         st.session_state.anomaly_results = anomaly_result
@@ -1986,14 +2162,14 @@ def main_enterprise() -> None:
                     result = st.session_state.anomaly_results
                     summary_col1, summary_col2, summary_col3, summary_col4 = st.columns(4, gap="medium")
                     with summary_col1:
-                        st.metric("🎯 Method", result["method"])
+                        st.metric("Method", result["method"])
                     with summary_col2:
-                        st.metric("⚠️ Anomalies Found", f"{result['outlier_count']:,}")
+                        st.metric("Anomalies Found", f"{result['outlier_count']:,}")
                     with summary_col3:
                         anomaly_rate = result['outlier_count'] / len(result['outliers']) * 100
-                        st.metric("📊 Anomaly Rate", f"{anomaly_rate:.1f}%")
+                        st.metric("Anomaly Rate", f"{anomaly_rate:.1f}%")
                     with summary_col4:
-                        st.metric("🔍 Features Used", len(result['columns']))
+                        st.metric("Features Used", len(result['columns']))
                     
                     if len(result['columns']) >= 2:
                         viz_df = st.session_state.selected_df.loc[result['index']].copy()
@@ -2002,236 +2178,239 @@ def main_enterprise() -> None:
                         fig_anomaly = px.scatter(viz_df, x=result['columns'][0], y=result['columns'][1], color='is_anomaly', size='anomaly_score', title=f"Anomaly Detection Results - {result['method']}", color_discrete_map={True: 'red', False: 'blue'}, labels={'is_anomaly': 'Anomaly'})
                         st.plotly_chart(fig_anomaly, use_container_width=True)
 
-        with tab5:
-            st.header("📈 Enterprise Visualization Studio")
+        with tab6:  # Visualizations Tab
+            st.header("Enterprise Visualization Studio")
             # This tab is now just for chart building, filters are in the main sidebar
-            st.sidebar.subheader("📊 Visualization Config")
+            st.sidebar.subheader("Visualization Config")
             suggested_charts = suggest_chart_type(df.shape, len(numeric_cols), len(categorical_cols))
             if suggested_charts:
-                st.sidebar.info(f"💡 AI Suggestions: {', '.join(suggested_charts[:3])}")
+                st.sidebar.info(f"AI Suggestions: {', '.join(suggested_charts[:3])}")
             
             chart_col1, chart_col2 = st.sidebar.columns(2)
-            if chart_col1.button("➕ Add Chart", key="add_viz_chart_btn"):
+            if chart_col1.button("Add Chart", key="add_viz_chart_btn"):
                 st.session_state.chart_configs.append({"chart_type": suggested_charts[0] if suggested_charts else CHART_OPTIONS[0], "id": len(st.session_state.chart_configs)})
                 st.rerun()
-            if st.session_state.chart_configs and chart_col2.button("🗑️ Clear All", key="clear_viz_charts_btn"):
+            if st.session_state.chart_configs and chart_col2.button("Clear All", key="clear_viz_charts_btn"):
                 st.session_state.chart_configs = []
                 st.rerun()
 
             if st.session_state.chart_configs:
-                chart_tabs = st.tabs([f"📊 Chart {i + 1}" for i in range(len(st.session_state.chart_configs))])
+                chart_tabs = st.tabs([f"Chart {i + 1}" for i in range(len(st.session_state.chart_configs))])
                 figs = []
                 for idx, chart_tab in enumerate(chart_tabs):
                     with chart_tab:
-                         
-                        if st.session_state.chart_configs:
-                            # Create a tab for each configured chart
-                            chart_tabs = st.tabs([f"📊 Chart {i + 1}" for i in range(len(st.session_state.chart_configs))])
+                        if idx < len(st.session_state.chart_configs):
+                            config = st.session_state.chart_configs[idx]
+
+                            # --- Chart Configuration UI ---
+                            config_col1, config_col2, config_col3, config_col4 = st.columns(4, gap="medium")
+
+                            with config_col1:
+                                chart_type = st.selectbox(
+                                    "Chart Type",
+                                    CHART_OPTIONS,
+                                    index=CHART_OPTIONS.index(config["chart_type"]) if config["chart_type"] in CHART_OPTIONS else 0,
+                                    key=f"chart_type_viz_{idx}"
+                                )
+                                st.session_state.chart_configs[idx]["chart_type"] = chart_type
+
+                            with config_col2:
+                                # Smartly suggest appropriate columns for axes based on chart type
+                                if chart_type in ["Scatter Plot", "Line Chart"]:
+                                    x_options = numeric_cols + datetime_cols
+                                    y_options = numeric_cols
+                                elif chart_type == "Bar Chart":
+                                    x_options = categorical_cols
+                                    y_options = numeric_cols
+                                elif chart_type == "Histogram":
+                                    x_options = numeric_cols
+                                    y_options = []
+                                elif chart_type in ["Box Plot", "Violin Plot"]:
+                                    x_options = categorical_cols + [None]
+                                    y_options = numeric_cols
+                                elif chart_type == "Pie Chart":
+                                    x_options = categorical_cols
+                                    y_options = numeric_cols
+                                elif chart_type == "Anomaly Plot":
+                                    x_options = numeric_cols
+                                    y_options = numeric_cols
+                                else:
+                                    x_options = list(df_filtered.columns)
+                                    y_options = numeric_cols
+
+                                x_axis = st.selectbox("X-axis", x_options if x_options else ["No suitable columns"], key=f"x_axis_viz_{idx}") if x_options else None
+
+                            with config_col3:
+                                y_axis = st.selectbox("Y-axis", y_options if y_options else ["No suitable columns"], key=f"y_axis_viz_{idx}") if y_options else None
+
+                            with config_col4:
+                                color_col = st.selectbox("Color By", [None] + categorical_cols, key=f"color_viz_{idx}") if categorical_cols else None
+
+                            # --- Advanced Chart Options Expander ---
+                            with st.expander("Advanced Chart Options"):
+                                adv_col1, adv_col2, adv_col3 = st.columns(3)
+                                with adv_col1:
+                                    theme = st.selectbox("Theme", THEME_OPTIONS, key=f"theme_viz_{idx}")
+                                    custom_title = st.text_input("Title", f"{chart_type} - {selected_file}", key=f"title_viz_{idx}")
+                                with adv_col2:
+                                    height = st.slider("Height (px)", 300, 1000, 600, key=f"height_viz_{idx}")
+                                    width = st.slider("Width (%)", 50, 100, 100, key=f"width_viz_{idx}")
+                                with adv_col3:
+                                    show_legend = st.checkbox("Show Legend", True, key=f"legend_viz_{idx}")
+                                    show_grid = st.checkbox("Show Grid", True, key=f"grid_viz_{idx}")
+                                    enable_zoom = st.checkbox("Enable Zoom", True, key=f"zoom_viz_{idx}")
+
+                            # --- Chart Generation Logic ---
+                            fig = None
+                            if chart_type == "Correlation Heatmap":
+                                if len(numeric_cols) >= 2:
+                                    try:
+                                        plot_df = df_filtered.sample(n=min(10000, len(df_filtered)), random_state=42)
+                                        corr_matrix = plot_df[numeric_cols].corr()
+                                        fig = px.imshow(corr_matrix, text_auto=True, aspect="auto", color_continuous_scale="RdBu", title=custom_title, height=height)
+                                    except Exception as e:
+                                        st.error(f"Correlation heatmap failed: {e}")
+                                else:
+                                    st.warning("Need at least 2 numeric columns for a heatmap.")
                             
-                            # Initialize a list to hold the figure objects for exporting
-                            figs = [] 
+                            elif chart_type == "Map View":
+                                lat_col, lon_col = find_lat_lon_columns(df_filtered.columns)
+                                if lat_col and lon_col:
+                                    map_data = df_filtered[[lat_col, lon_col]].dropna()
+                                    st.map(map_data, use_container_width=True)
+                                else:
+                                    st.warning("Map requires latitude/longitude columns (e.g., 'lat', 'lon').")
 
-                            for idx, chart_tab in enumerate(chart_tabs):
-                                with chart_tab:
-                                    # Ensure the config exists for the current tab
-                                    if idx < len(st.session_state.chart_configs):
-                                        config = st.session_state.chart_configs[idx]
+                            else:
+                                if x_axis or (y_axis and chart_type not in ["Histogram"]):
+                                    try:
+                                        plot_df = df_filtered.sample(n=min(15000, len(df_filtered)), random_state=42)
+                                        plot_args = {'data_frame': plot_df, 'title': custom_title, 'template': theme, 'height': height}
+                                        if color_col:
+                                            plot_args['color'] = color_col
 
-                                        # --- Chart Configuration UI ---
-                                        config_col1, config_col2, config_col3, config_col4 = st.columns(4, gap="medium")
+                                        if chart_type == "Scatter Plot":
+                                            fig = px.scatter(x=x_axis, y=y_axis, **plot_args)
+                                        elif chart_type == "Line Chart":
+                                            fig = px.line(x=x_axis, y=y_axis, **plot_args)
+                                        elif chart_type == "Bar Chart":
+                                            fig = px.bar(x=x_axis, y=y_axis, **plot_args)
+                                        elif chart_type == "Histogram":
+                                            fig = px.histogram(x=x_axis, **plot_args)
+                                        elif chart_type == "Box Plot":
+                                            fig = px.box(x=x_axis, y=y_axis, **plot_args)
+                                        elif chart_type == "Violin Plot":
+                                            fig = px.violin(x=x_axis, y=y_axis, **plot_args)
+                                        elif chart_type == "Pie Chart":
+                                            fig = px.pie(names=x_axis, values=y_axis, **plot_args)
+                                    
+                                    except Exception as e:
+                                        st.error(f"Chart creation failed: {e}")
+                                else:
+                                    st.info("Please select appropriate axes for the chart.")
 
-                                        with config_col1:
-                                            chart_type = st.selectbox(
-                                                "📊 Chart Type",
-                                                CHART_OPTIONS,
-                                                index=CHART_OPTIONS.index(config["chart_type"]) if config["chart_type"] in CHART_OPTIONS else 0,
-                                                key=f"chart_type_viz_{idx}"
-                                            )
-                                            st.session_state.chart_configs[idx]["chart_type"] = chart_type
+                            # --- Display Chart and Add to Export List ---
+                            if fig:
+                                fig.update_layout(showlegend=show_legend, xaxis_showgrid=show_grid, yaxis_showgrid=show_grid)
+                                st.plotly_chart(fig, use_container_width=True, key=f"plotly_viz_{idx}")
+                                figs.append(fig)
 
-                                        with config_col2:
-                                            # Smartly suggest appropriate columns for axes based on chart type
-                                            if chart_type in ["Scatter Plot", "Line Chart"]:
-                                                x_options = numeric_cols + datetime_cols
-                                                y_options = numeric_cols
-                                            elif chart_type == "Bar Chart":
-                                                x_options = categorical_cols
-                                                y_options = numeric_cols
-                                            elif chart_type == "Histogram":
-                                                x_options = numeric_cols
-                                                y_options = []
-                                            elif chart_type in ["Box Plot", "Violin Plot"]:
-                                                x_options = categorical_cols + [None]
-                                                y_options = numeric_cols
-                                            elif chart_type == "Pie Chart":
-                                                x_options = categorical_cols
-                                                y_options = numeric_cols
-                                            elif chart_type == "Anomaly Plot":
-                                                x_options = numeric_cols
-                                                y_options = numeric_cols
-                                            else:
-                                                x_options = list(df_filtered.columns)
-                                                y_options = numeric_cols
-
-                                            x_axis = st.selectbox("🎯 X-axis", x_options if x_options else ["No suitable columns"], key=f"x_axis_viz_{idx}") if x_options else None
-
-                                        with config_col3:
-                                            y_axis = st.selectbox("🎯 Y-axis", y_options if y_options else ["No suitable columns"], key=f"y_axis_viz_{idx}") if y_options else None
-
-                                        with config_col4:
-                                            color_col = st.selectbox("🎨 Color By", [None] + categorical_cols, key=f"color_viz_{idx}") if categorical_cols else None
-
-                                        # --- Advanced Chart Options Expander ---
-                                        with st.expander("🎛️ Advanced Chart Options"):
-                                            adv_col1, adv_col2, adv_col3 = st.columns(3)
-                                            with adv_col1:
-                                                theme = st.selectbox("🎨 Theme", THEME_OPTIONS, key=f"theme_viz_{idx}")
-                                                custom_title = st.text_input("📝 Title", f"{chart_type} - {selected_file}", key=f"title_viz_{idx}")
-                                            with adv_col2:
-                                                height = st.slider("📏 Height (px)", 300, 1000, 600, key=f"height_viz_{idx}")
-                                                width = st.slider("📐 Width (%)", 50, 100, 100, key=f"width_viz_{idx}")
-                                            with adv_col3:
-                                                show_legend = st.checkbox("🏷️ Show Legend", True, key=f"legend_viz_{idx}")
-                                                show_grid = st.checkbox("🔲 Show Grid", True, key=f"grid_viz_{idx}")
-                                                enable_zoom = st.checkbox("🔍 Enable Zoom", True, key=f"zoom_viz_{idx}")
-
-                                        # --- Chart Generation Logic ---
-                                        fig = None # Initialize fig to None
-                                        if chart_type == "Correlation Heatmap":
-                                            if len(numeric_cols) >= 2:
-                                                try:
-                                                    plot_df = df_filtered.sample(n=min(10000, len(df_filtered)), random_state=42)
-                                                    corr_matrix = plot_df[numeric_cols].corr()
-                                                    fig = px.imshow(corr_matrix, text_auto=True, aspect="auto", color_continuous_scale="RdBu", title=custom_title, height=height)
-                                                except Exception as e:
-                                                    st.error(f"Correlation heatmap failed: {e}")
-                                            else:
-                                                st.warning("Need at least 2 numeric columns for a heatmap.")
-                                        
-                                        elif chart_type == "Map View":
-                                            lat_col, lon_col = find_lat_lon_columns(df_filtered.columns)
-                                            if lat_col and lon_col:
-                                                map_data = df_filtered[[lat_col, lon_col]].dropna()
-                                                st.map(map_data, use_container_width=True)
-                                            else:
-                                                st.warning("Map requires latitude/longitude columns (e.g., 'lat', 'lon').")
-
-                                        else: # Standard chart types
-                                            if x_axis or (y_axis and chart_type not in ["Histogram"]):
-                                                try:
-                                                    plot_df = df_filtered.sample(n=min(15000, len(df_filtered)), random_state=42)
-                                                    plot_args = {'data_frame': plot_df, 'title': custom_title, 'template': theme, 'height': height}
-                                                    if color_col:
-                                                        plot_args['color'] = color_col
-
-                                                    if chart_type == "Scatter Plot":
-                                                        fig = px.scatter(x=x_axis, y=y_axis, **plot_args)
-                                                    elif chart_type == "Line Chart":
-                                                        fig = px.line(x=x_axis, y=y_axis, **plot_args)
-                                                    elif chart_type == "Bar Chart":
-                                                        fig = px.bar(x=x_axis, y=y_axis, **plot_args)
-                                                    elif chart_type == "Histogram":
-                                                        fig = px.histogram(x=x_axis, **plot_args)
-                                                    elif chart_type == "Box Plot":
-                                                        fig = px.box(x=x_axis, y=y_axis, **plot_args)
-                                                    elif chart_type == "Violin Plot":
-                                                        fig = px.violin(x=x_axis, y=y_axis, **plot_args)
-                                                    elif chart_type == "Pie Chart":
-                                                        fig = px.pie(names=x_axis, values=y_axis, **plot_args)
-                                                
-                                                except Exception as e:
-                                                    st.error(f"Chart creation failed: {e}")
-                                            else:
-                                                st.info("Please select appropriate axes for the chart.")
-
-                                        # --- Display Chart and Add to Export List ---
-                                        if fig:
-                                            fig.update_layout(showlegend=show_legend, xaxis_showgrid=show_grid, yaxis_showgrid=show_grid)
-                                            st.plotly_chart(fig, use_container_width=True)
-                                            figs.append(fig)
-                                             # Chart building logic here (omitted for brevity but is in the original code)
-                                            st.write(f"Chart configuration for Chart {idx+1}")
-
-
-        with tab6:
-            st.header("🧠 Enterprise Machine Learning Studio")
+        with tab7:  # ML Studio Tab
+            st.header("Enterprise Machine Learning Studio")
             ml_col1, ml_col2 = st.columns([1, 1], gap="large")
             with ml_col1:
-                with st.expander("🎯 Advanced K-Means Clustering", expanded=True):
+                with st.expander("Advanced K-Means Clustering", expanded=True):
                     if not numeric_cols:
-                        st.warning("⚠️ No numeric columns for clustering")
+                        st.warning("No numeric columns for clustering")
                     else:
-                        auto_k = st.checkbox("🎯 Auto-suggest k", key="auto_k_check_viz")
-                        selected_features = st.multiselect("Features for Clustering", numeric_cols, default=numeric_cols[:4], key="kmeans_features_viz")
+                        auto_k = st.checkbox("Auto-suggest k", key="auto_k_check_ml")
+                        selected_features = st.multiselect("Features for Clustering", numeric_cols, default=numeric_cols[:4], key="kmeans_features_ml")
                         if auto_k and selected_features:
                             k = optimal_k_cached(df_hash, selected_features)
-                            st.success(f"🎯 AI Suggested k: {k}")
+                            st.success(f"AI Suggested k: {k}")
                         else:
-                            k = st.slider("Number of clusters", 2, 10, 3, key="k_slider_viz")
+                            k = st.slider("Number of clusters", 2, 10, 3, key="k_slider_ml")
                         
-                        if st.button("🚀 Run Clustering", key="run_clustering_viz_btn") and selected_features:
-                             with st.spinner("Running K-Means..."):
+                        if st.button("Run Clustering", key="run_clustering_ml_btn") and selected_features:
+                            with st.spinner("Running K-Means..."):
                                 cluster_result = perform_kmeans_optimized(df_filtered, selected_features, k)
                                 if "error" in cluster_result:
-                                    st.error(f"❌ {cluster_result['error']}")
+                                    st.error(f"{cluster_result['error']}")
                                 else:
-                                    st.success(f"✅ Clustering completed!")
+                                    st.success(f"Clustering completed!")
+                                    if len(selected_features) >= 2:
+                                        cluster_data = df_filtered[selected_features].iloc[cluster_result['index']]
+                                        cluster_data['cluster'] = cluster_result['labels']
+                                        fig_cluster = px.scatter(cluster_data, x=selected_features[0], y=selected_features[1], color='cluster')
+                                        st.plotly_chart(fig_cluster, use_container_width=True)
+                                    st.write("Cluster sizes:")
+                                    st.dataframe(pd.Series(cluster_result['labels']).value_counts())
             
             with ml_col2:
-                with st.expander("🌳 Advanced ML Models & AutoML", expanded=True):
+                with st.expander("Advanced ML Models & AutoML", expanded=True):
                     if not (numeric_cols or categorical_cols):
-                        st.warning("⚠️ No suitable features for modeling")
+                        st.warning("No suitable features for modeling")
                     else:
                         model_config_col1, model_config_col2 = st.columns(2, gap="medium")
                         with model_config_col1:
-                            model_choice = st.selectbox("🤖 Model Type", ML_MODELS + ["AutoML Comparison"], key="ml_model_choice")
-                            task_type = st.selectbox("📋 Task", ["regression", "classification"], key="ml_task_type")
+                            model_choice = st.selectbox("Model Type", ML_MODELS + ["AutoML Comparison"], key="ml_model_choice")
+                            task_type = st.selectbox("Task", ["regression", "classification"], key="ml_task_type")
                         with model_config_col2:
-                            enable_tuning = st.checkbox("⚙️ Hyperparameter tuning", key="ml_enable_tuning")
-                            enable_preprocessing = st.checkbox("🔧 Auto preprocessing", value=True, key="ml_enable_preprocessing")
+                            enable_tuning = st.checkbox("Hyperparameter tuning", key="ml_enable_tuning")
+                            enable_preprocessing = st.checkbox("Auto preprocessing", value=True, key="ml_enable_preprocessing")
                         
                         available_features = numeric_cols + categorical_cols
-                        x_features = st.multiselect("🎯 Features (X)", available_features, default=numeric_cols[:4] if len(numeric_cols) >= 4 else numeric_cols, key="ml_x_features", help="Select features for model training")
+                        x_features = st.multiselect("Features (X)", available_features, default=numeric_cols[:4] if len(numeric_cols) >= 4 else numeric_cols, key="ml_x_features", help="Select features for model training")
                         target_options = [col for col in df_filtered.columns if col not in x_features]
-                        y_target = st.selectbox("🎯 Target (Y)", target_options, key="ml_y_target")
+                        y_target = st.selectbox("Target (Y)", target_options, key="ml_y_target")
 
                         if model_choice == "MLP":
-                             hidden_layer_1 = st.slider("Layer 1 Neurons", 10, 200, 50, key="mlp_layer1")
-                             hidden_layer_2 = st.slider("Layer 2 Neurons", 10, 200, 50, key="mlp_layer2")
-                             max_iterations = st.slider("Max Iterations", 100, 1000, 200, key="mlp_max_iter")
-                             hidden_layers = (hidden_layer_1, hidden_layer_2)
+                            hidden_layer_1 = st.slider("Layer 1 Neurons", 10, 200, 50, key="mlp_layer1")
+                            hidden_layer_2 = st.slider("Layer 2 Neurons", 10, 200, 50, key="mlp_layer2")
+                            max_iterations = st.slider("Max Iterations", 100, 1000, 200, key="mlp_max_iter")
+                            hidden_layers = (hidden_layer_1, hidden_layer_2)
 
-                        if st.button("🚀 Train Advanced Model", key="train_advanced_model_btn") and x_features and y_target:
+                        if st.button("Train Advanced Model", key="train_advanced_model_btn") and x_features and y_target:
                             with st.spinner(f"Training {model_choice} model..."):
                                 if model_choice == "MLP":
                                     ml_result = train_mlp_model(df_filtered, x_features, y_target, task_type, hidden_layers=hidden_layers, max_iter=max_iterations)
                                 elif model_choice == "AutoML Comparison":
                                     ml_result = generate_ml_model_comparison(df_filtered, x_features, y_target, task_type)
-                                else: # RandomForest
+                                elif model_choice == "RandomForest":
                                     ml_result = perform_random_forest_optimized(df_filtered, x_features, y_target, task_type, preprocess=enable_preprocessing, tune=enable_tuning)
+                                else:
+                                    ml_result = {"error": "Unsupported model"}
                                 
                                 if "error" in ml_result:
-                                    st.error(f"❌ {ml_result['error']}")
+                                    st.error(f"{ml_result['error']}")
                                 else:
-                                    st.success(f"✅ {model_choice} model trained successfully!")
-                                    # (Result display logic would follow here)
-
+                                    st.success(f"{model_choice} model trained successfully!")
+                                    if model_choice == "AutoML Comparison":
+                                        comparison_df = pd.DataFrame({
+                                            'Model': list(ml_result.keys())[:-1],
+                                            'Key Metric': [ml_result[m]['metrics'].get('r2' if task_type == 'regression' else 'f1', 0) for m in list(ml_result.keys())[:-1]],
+                                            'Training Time': [ml_result[m]['training_time'] for m in list(ml_result.keys())[:-1]]
+                                        })
+                                        st.dataframe(comparison_df)
+                                    else:
+                                        metrics_df = pd.DataFrame(ml_result['metrics'].items(), columns=['Metric', 'Value'])
+                                        st.dataframe(metrics_df)
 
     except Exception as e:
         st.error(f"Enterprise application error: {e}")
         logging.error(f"Enterprise main application error: {e}")
-        st.markdown("### 🚨 Enterprise Error Recovery")
+        st.markdown("### Error Recovery")
         recovery_col1, recovery_col2, recovery_col3 = st.columns(3)
         with recovery_col1:
-            if st.button("🔄 Soft Reload", key="soft_reload_btn"):
+            if st.button("Soft Reload", key="soft_reload_btn"):
                 st.rerun()
         with recovery_col2:
-            if st.button("🗑️ Clear All Cache", key="clear_all_cache_btn"):
+            if st.button("Clear All Cache", key="clear_all_cache_btn"):
                 st.cache_data.clear()
                 st.cache_resource.clear()
                 st.success("All caches cleared!")
         with recovery_col3:
-            if st.button("🆘 Emergency Reset", key="emergency_reset_btn"):
+            if st.button("Emergency Reset", key="emergency_reset_btn"):
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
                 st.rerun()
