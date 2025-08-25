@@ -1,10 +1,9 @@
 # Eve Analytics: Zero-Cost, Low-Resource Data Science 🚀
 
-**Tagline**: A trio of powerful data analytics platforms built solo in 10 days on a 4GB RAM system with no budget and constant power outages.
 
 ## Introduction
 
-Eve Analytics is a suite of three Streamlit-based data analytics platforms—**Eve**, **Eve Plus**, and **Eve Ultra**—designed for lightweight, enterprise-grade data analysis. Built by a solo developer in 10 days on a 4GB RAM HP Probook 6560b, this project pushes the boundaries of creativity under extreme constraints (zero cost, frequent power outages). From basic visualizations to advanced machine learning and conversational AI, Eve Analytics empowers users in resource-constrained environments.
+Eve Analytics is a suite of three Streamlit-based data analytics platforms—**Eve**, **Eve Plus**, and **Eve Ultra**—designed for enterprise-grade data analysis. Built by Alex Alagoa Biobelemo in 10 days on a 4GB RAM HP Probook , this project pushes the boundaries of creativity under extreme constraints (zero cost, frequent power outages). From basic visualizations to advanced machine learning and conversational AI, Eve Analytics empowers users in resource-constrained environments.
 
 Key highlights:
 - **Zero-Cost Development**: Created with $0 using open-source tools like Streamlit, Pandas, Plotly, and Scikit-learn.
@@ -15,22 +14,22 @@ Key highlights:
 
 | Feature                  | Eve (Standard)                          | Eve Plus (Enhanced)                     | Eve Ultra (Enterprise-Grade)            |
 |--------------------------|-----------------------------------------|-----------------------------------------|-----------------------------------------|
-| **Data Loading**         | CSV, Excel, JSON with basic handling    | + Multiple encodings, quality checks    | + Batch uploads, quality scoring, metadata |
-| **Data Processing**      | Basic DuckDB filtering                  | + Smart sampling (>1M rows)             | + Automated feature engineering, advanced quality analysis |
-| **Visualizations**       | Scatter, Line, Bar, Histogram, Box      | + Violin, Pie, Map, Correlation Heatmap | + Anomaly Plot, responsive layouts, accessibility themes |
-| **Machine Learning**     | K-Means clustering with basic metrics   | + Random Forest (regression/classification) | + MLP neural networks, AutoML comparison, advanced clustering |
+| **Data Loading**         | CSV, Excel, JSON with basic handling    |  Multiple encodings, quality checks    |  Batch uploads, quality scoring, metadata |
+| **Data Processing**      | Basic DuckDB filtering                  |  Smart sampling (>1M rows)             |  Automated feature engineering, advanced quality analysis |
+| **Visualizations**       | Scatter, Line, Bar, Histogram, Box      |  Violin, Pie, Map, Correlation Heatmap |  Anomaly Plot, responsive layouts, accessibility themes |
+| **Machine Learning**     | K-Means clustering with basic metrics   |  Random Forest (regression/classification) |  MLP neural networks, AutoML comparison, advanced clustering |
 | **Anomaly Detection**    | None                                    | IsolationForest, basic outlier removal  | Multiple methods (IsolationForest, Z-Score, Modified Z-Score, IQR) with visualizations |
 | **Natural Language Processing** | None                               | None                                    | Conversational AI for queries (cleaning, filtering, stats, ML) |
 | **Performance Optimizations** | Basic caching                      | Advanced caching, session state         | Hardware-aware (4GB RAM), adaptive sampling, recovery options |
-| **Export/Reporting**     | Basic CSV, HTML dashboard               | + JSON chart export                     | + Themed HTML dashboards, JSON analytics reports |
-| **EDA Capabilities**     | Basic summary and insights              | + Correlation heatmap, chart suggestions | + Comprehensive stats, correlations, outliers |
+| **Export/Reporting**     | Basic CSV, HTML dashboard               |  JSON chart export                     |  Themed HTML dashboards, JSON analytics reports |
+| **EDA Capabilities**     | Basic summary and insights              |  Correlation heatmap, chart suggestions |  Comprehensive stats, correlations, outliers |
 | **Accessibility**        | Basic Streamlit layout                  | Responsive design                       | High Contrast, Colorblind Friendly themes, responsive flex containers |
 | **Other**                | Simple UI                               | Performance dashboard, session management | Conversational AI tab, advanced UI controls |
 
 ## Installation
 
 1. **Prerequisites**:
-   - Python 3.8+ (free download from python.org; tested on low-spec hardware).
+   - Python 3.8 (free download from python.org; tested on low-spec hardware).
    - No internet required after installation (offline compatible).
    - Dependencies (install via pip; total ~200MB disk space):
      ```bash
