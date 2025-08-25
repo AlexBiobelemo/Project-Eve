@@ -1,6 +1,6 @@
 # Eve Analytics Developer Guide
 
-This guide is for developers extending or contributing to **Eve Analytics**, a zero-cost data analytics platform optimized for 4GB RAM systems. It covers code structure, key functions, optimizations, and contribution guidelines. Built solo in 10 days on a 4GB RAM HP Probook 6560b with no budget and power outages, the project emphasizes lightweight, maintainable code.
+This guide is for developers extending or contributing to **Eve Analytics**, a zero-cost data analytics platform. It covers code structure, key functions, optimizations, and contribution guidelines. Built solo in 10 days on no budget and power outages, the project emphasizes lightweight, maintainable code.
 
 For user-focused instructions, see `docs/user_guide.md`. For function references, see `docs/api_reference.md`.
 
