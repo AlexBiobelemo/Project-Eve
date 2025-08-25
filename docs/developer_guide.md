@@ -8,13 +8,13 @@ For user-focused instructions, see `docs/user_guide.md`. For function references
 
 The project consists of three main Python files, each representing a version, with shared helper functions for modularity. Code is organized to minimize memory usage and support low-spec hardware.
 
-- **eve.py**: The standard version with basic data loading, filtering, EDA, K-Means clustering, and simple visualizations.
+- **app.py(fastest)**: The standard version with basic data loading, filtering, EDA, K-Means clustering, and simple visualizations.
   - Key Sections: Data loading (`load_data`), filtering (`apply_duckdb_filters`), EDA (`compute_eda_summary`), ML (`perform_kmeans_optimized`), visualizations (`create_plotly_chart`).
   
-- **eve_plus.py**: Builds on Eve with enhanced ML (Random Forest), additional charts, and performance features.
+- **app.py(plus)**: Builds on Eve with enhanced ML (Random Forest), additional charts, and performance features.
   - Key Additions: Random Forest training (`perform_random_forest_optimized`), advanced metrics (`enhanced_regression_metrics`, `enhanced_classification_metrics`), enhanced preprocessing (`preprocess_rf_cached`).
 
-- **eve_ultra.py**: The enterprise-grade version with neural networks (MLP), AutoML, NLP, anomaly detection, and advanced UI.
+- **app.py(ultra)**: The enterprise-grade version with neural networks (MLP), AutoML, NLP, anomaly detection, and advanced UI.
   - Key Additions: MLP training (`train_mlp_model`), AutoML comparison (`generate_ml_model_comparison`), NLP (`process_advanced_natural_query`), anomaly detection (`detect_anomalies_enterprise`), feature engineering (`perform_automated_feature_engineering`), advanced EDA (`generate_advanced_eda_report`).
 
 - **Shared Modules/Functions**:
@@ -93,5 +93,3 @@ Follow Python PEP 8 style; use Markdown for comments in complex functions.
 - **FAQ & Troubleshooting**: `docs/faq_troubleshooting.md` for common issues.
 - **Tutorial**: `docs/tutorial.md` for hands-on examples.
 - **External**: Streamlit docs (streamlit.io), Scikit-learn user guide (scikit-learn.org).
-
-Contact [your.email@example.com] for questions or collaboration. Happy coding! 🚀
