@@ -92,7 +92,7 @@ See `docs/developer_guide.md` for code structure and guidelines.
 Built solo by [Your Name] in 10 days with $0, overcoming constant electricity downtime on a 4GB RAM HP Probook 6560b. This project showcases creativity and technical skill in resource-constrained environments, proving enterprise-grade analytics can be achieved with minimal resources.
 
 - **Inspiration**: Pushing boundaries of innovation with so little—zero cost, low-spec hardware, and unreliable power.
-- **Contact**: [your.email@example.com] | LinkedIn: [your-linkedin] | GitHub: [your-github]
+- **Contact**: https://www.linkedin.com/in/alex-alagoa-biobelemo/
 
 ## License
 MIT License - free to use, modify, and distribute. See `LICENSE` file for details.
