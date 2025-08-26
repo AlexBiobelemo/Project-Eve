@@ -3,7 +3,7 @@
 
 ## Introduction
 
-Project Eve is a suite of three Streamlit-based data analytics platforms—**Eve**, **Eve Plus**, and **Eve Ultra**—designed for enterprise-grade data analysis. Built by Alex Alagoa Biobelemo in 10 days on a 4GB RAM HP Probook , this project pushes the boundaries of creativity under extreme constraints (zero cost, frequent power outages). From basic visualizations to advanced machine learning and conversational AI, Eve Analytics empowers users in resource-constrained environments.
+Project Eve is a suite of three Streamlit-based data analytics platforms—**Eve**, **Eve Plus**, and **Eve Ultra**—designed for enterprise-grade data analysis. Built by Alex Alagoa Biobelemo in 10 days this project pushes the boundaries of creativity under extreme constraints (zero cost, frequent power outages). From basic visualizations to advanced machine learning and conversational AI, Eve Analytics empowers users in resource-constrained environments.
 
 Key highlights:
 - **Zero-Cost Development**: Created with $0 using open-source tools like Streamlit, Pandas, Plotly, and Scikit-learn.
