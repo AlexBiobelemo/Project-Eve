@@ -154,6 +154,6 @@ See `docs/user_guide.md` for more examples.
 - **Low-Resource Systems**: Use Eve for small datasets (<10K rows), Eve Plus for medium datasets (<1M rows), and Eve Ultra for advanced features with sampling.
 - **Logging**: Check `app.log` for errors (enabled in all versions).
 - **Testing**: Use the demo dataset (`enterprise_demo.csv`) to troubleshoot without external files.
-- **Community**: Report issues or suggestions at [your.email@example.com] or GitHub Issues.
+- **Community**: Report issues or suggestions at https://www.linkedin.com/in/alex-alagoa-biobelemo/ or GitHub Issues.
 
 For hands-on examples, see `docs/tutorial.md`. Happy troubleshooting! 🚀
