@@ -132,4 +132,4 @@ For general usage, see `docs/user_guide.md`. For developers, see `docs/developer
 - Explore more features in `docs/user_guide.md` (e.g., advanced NLP queries, accessibility themes).
 - Troubleshoot issues in `docs/faq_troubleshooting.md`.
 - For developers: Extend functionality using `docs/developer_guide.md` and `docs/api_reference.md`.
-- Share feedback or issues at [your.email@example.com].
+- Share feedback or issues at https://www.linkedin.com/in/alex-alagoa-biobelemo/.
